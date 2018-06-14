@@ -3,15 +3,12 @@
 [Homesick][1] allows you to manage multiple [dot files][2] but it has some
 shortcomings:
 
-* Doesn't merge files, allowing multiple repositories to play nice together
-* Requires Ruby as dependency, which isn't always sane when you just want your
-  home with you
-* Don't provide a standard to allow sharing your castle with others easily
+* Doesn't merge files, multiple repositories work only for different file names
+* Ruby as dependency feels too much for so little
+* Doesn't provide a standard, allowing to share your castle with others easily
 
-Carcassonne is for people who spend most of the time in the shell. It assumes a
-few things:
+Carcassonne is for people who spend most of the time in the shell. It assumes:
 
-1. It will be your first castle, owning some key files (e.g: `bashrc`)
 1. It has a POSIX environment available
 1. You know what you are doing: destructive operations are done without
    interaction
@@ -19,39 +16,57 @@ few things:
 [1]: https://github.com/technicalpickles/homesick
 [2]: https://en.wikipedia.org/wiki/Hidden_file_and_hidden_directory
 
-## Installing
+## First contact: Installation and usage
 
-* Homesick clone
+Carcassone is a single script program, just put it in your `$PATH` or:
 
-You `.bashrc` should be already in place from Carcassonne, you can have a look
-and edit the provided configuration:
+    $ sh <(curl -sSL http://git.io/sinister) -u http://git.io/carcassone
+    $ carcassone --help
+    Usage: carcassone <command> [options]
+           carcassone merge <file>
 
-    PATH="$HOME/bin:$PATH"
-    managed_by_carcassone "${HOME}/.carcassonne"
+    Commands available:
+       merge     Creates <file> by merging all files found with that
+                 pattern. (Use 'carcassone merge --help' for more details.
+       help      Displays this message, also available inside commands.
+       version   Displays the version of the program.
 
-## Merging files with `managed_dot_file`
+    Send bugs and/or suggestions to https://github.com/augustohp/carcassone/issues
 
-Multiple castles might need to affect the same files, `.bashrc` for instance,
-and to do that Carcassonne *merges files* for you. By default, no files are
-merged, you need to mention them on `$HOME/.carcassonne` like this:
+No one likes slow things, so Carcassone runs just when asked to. Carcassone
+appends multiple files together into one, to generate a `.ssh/config`:
+
+    $ carcassone merge ".ssh/config"
+
+This will **overwrite** the current file if it exists, creating a new one by:
+
+1. Executing a `find` with all files named `.ssh/config_*`
+1. Sort the files alphabetically
+1. Insert the contents of each file into `.ssh/config` into sorted order
+
+Now, everyone at the company may share subsets of SSH configurations they care
+by fetching these files as they see fit:
+
+    $ cd ~/.ssh && ls
+    config_staging config_live config_databases config_01-mine
+
+All commands you execute are stored into `~/.carcassone`, so if you execute
+`carcassone remerge` it will re-execute all these commands again.
+
+## `carcassone merge` advanced usage
+
+Say you use Git at home and work, and want two different e-mails. With
+Carcassone, you can do that with 3 files:
+
+1. File `.gitconfig_01-base` holds configurations for *home* and *work*
+1. `.gitconfig_02-home` with user configuration for *home*
+1. `.gitconfig_02-work` with user configuration for *work*
 
     # ~/.carcassonne
-    managed_dot_file ".ssh/config"
+    
+    merge ".bashrc"
+    when_host dua* merge ".gitconfig" --ignore-sufix work
+    when_host_not dua* merge ".gitconfig" --ignore-sufix home
 
-What `managed_dot_file` does is to find, sort and append all the files that
-start with the *prefix* you gave, into a file named as the *prefix*. It runs
-every time you open a new *shell*, so it only does that if needed.
+Suffixes suck as OS (e,g: osx) are automatically filtered.
 
-    $ ls -a
-    .carcassone .bashrc .ssh/config_01-work .ssh/config_02-private
-
-If your `$HOME` is the one above, once you open a new *shell* all `.ssh/config_*`
-content will be into `.ssh/config`. The contents of `.ssh/config_01-work` will be the
-first things in the file:
-
-    $ carcassone
-    $ cat ~/.ssh/config
-    # Contents of `.ssh/config_01-work`
-    # Contents of `.ssh/config_02-private`
-
-After the *prefix*, an OS name can be used to only load files for an specific OS. 
