@@ -1,72 +1,130 @@
 # [Castle][1]: Carcassonne
 
-[Homesick][1] allows you to manage multiple [dot files][2] but it has some
-shortcomings:
+This is not a [castle][1], but helps you merge multiple castles together -
+*personal* and *work*, for example. It is a single posix shell-script, which
+eases its use on different machines.
 
-* Doesn't merge files, multiple repositories work only for different file names
-* Ruby as dependency feels too much for so little
-* Doesn't provide a standard, allowing to share your castle with others easily
+[1]: https://github.com/technicalpickles/homesick "Homesick: Take your $HOME"
 
-Carcassonne is for people who spend most of the time in the shell. It assumes:
+    $ carcassonne --help
+    Usage: carcassonne [options] <pattern>
+           carcassonne
 
-1. It has a POSIX environment available
-1. You know what you are doing: destructive operations are done without
-   interaction
+    Carcassone finds files following a "pattern" and outputs their content
+    after sorting their results.
+    Running the command without any argument will try to guess patterns based on
+    "environment variables", if they are not present an error is produced.
 
-[1]: https://github.com/technicalpickles/homesick
-[2]: https://en.wikipedia.org/wiki/Hidden_file_and_hidden_directory
+    Options:
+      --help, -h           Displays this help message.
+      --version, -v        Displays version of the program.
+      --files, -f          Prints file names instead of their output.
+      --depth <n>, -d <n>  How deep to search directories (Default: 2).
+      --sort <p>, -s <p>   Which program to pipe found files to?
+                           (Default: sort).
 
-## First contact: Installation and usage
+    Pattern:
+       This argument is passed to "-name" option of the "find" program. If you
+       want to output all ".ssh/config_*" files, "pattern" could be
+       ".ssh/config_*".
 
-Carcassone is a single script program, just put it in your `$PATH` or:
+    Environment variables:
+        CARCASSONNE_PATTERN_PREFIX
+        CARCASSONNE_PATTERN_SUFFIX
+        CARCASSONNE_FILES
 
-    $ sh <(curl -sSL http://git.io/sinister) -u http://git.io/carcassone
-    $ carcassone --help
-    Usage: carcassone <command> [options]
-           carcassone merge <file>
+    Send bugs and/or suggestions to https://github.com/augustohp/carcassonne/issues
 
-    Commands available:
-       merge     Creates <file> by merging all files found with that
-                 pattern. (Use 'carcassone merge --help' for more details.
-       help      Displays this message, also available inside commands.
-       version   Displays the version of the program.
+## Why?
 
-    Send bugs and/or suggestions to https://github.com/augustohp/carcassone/issues
+Putting your `$HOME` under a versioned repository is nice, but storing my editor
+configuration, SSH configuration and public keys, my scripts all under the
+same repository (for home and work) was driving me crazy. Using [homeshick][] to
+clone my [castles][1] doesn't allow to have two files, with the same name, in
+two different castles now allowing, for example, to merge my `.ssh/config` from
+home and work at my home computer.
 
-No one likes slow things, so Carcassone runs just when asked to. Carcassone
-appends multiple files together into one, to generate a `.ssh/config`:
+[homeshick]: https://github.com/andsens/homeshick "Dotfiles synchronizer"
 
-    $ carcassone merge ".ssh/config"
+I've been storing files like `.ssh/config_personal` and `.ssh/config_company`
+for some time and doing the following to create one:
 
-This will **overwrite** the current file if it exists, creating a new one by:
+    $ find -depth 2 -name "config_*" ~/.ssh \
+        | sort \
+        > ~/.ssh/config
 
-1. Executing a `find` with all files named `.ssh/config_*`
-1. Sort the files alphabetically
-1. Insert the contents of each file into `.ssh/config` into sorted order
+This is actually the second version it, the `sort` helps when order to generate
+files is important. The last version is in this script: `carcassonne`. That does
+that in a way other people can use, and maybe share it so other people can use
+it as well.
 
-Now, everyone at the company may share subsets of SSH configurations they care
-by fetching these files as they see fit:
+## Installation
 
-    $ cd ~/.ssh && ls
-    config_staging config_live config_databases config_01-mine
+Carcassonne is a single script program, just put it in your `$PATH` or:
 
-All commands you execute are stored into `~/.carcassone`, so if you execute
-`carcassone remerge` it will re-execute all these commands again.
+    $ sh <(curl -sSL http://git.io/sinister) -u http://git.io/carcassonne
 
-## `carcassone merge` advanced usage
+The above command, after executed, should provide you with a `carcassonne`
+command which you will use. To check if installation was successful, you
+can:
 
-Say you use Git at home and work, and want two different e-mails. With
-Carcassone, you can do that with 3 files:
+    $ carcassonne --version
+    Carcassonne 1.0.0
 
-1. File `.gitconfig_01-base` holds configurations for *home* and *work*
-1. `.gitconfig_02-home` with user configuration for *home*
-1. `.gitconfig_02-work` with user configuration for *work*
+If this fails, please [let me know][bugs].
 
-    # ~/.carcassonne
-    
-    merge ".bashrc"
-    when_host dua* merge ".gitconfig" --ignore-sufix work
-    when_host_not dua* merge ".gitconfig" --ignore-sufix home
+[bugs]: https://github.com/augustohp/carcassonne/issues "Submit a bug report"
 
-Suffixes suck as OS (e,g: osx) are automatically filtered.
+## Usage
+
+Carcassonne assumes you know how [redirection on shell][r] works, if you need a
+quick tutorial:
+
+    $ echo "Hello World" > /tmp/message
+    $ cat /tmp/message
+    Hello World
+    $ echo "Bye" > /tmp/message
+    $ cat /tmp/message
+    Bye
+    $ echo "Or not..." >> /tmp/message
+    Bye
+    Or not...
+
+Note the difference between `>` (truncates the file) and `>>` (appends to the
+file) and you know how to use it.
+
+[r]: http://www.tldp.org/LDP/abs/html/io-redirection.html "TLDP: I/O Redirection"
+
+There is a shortcut for when you are creating multiple files using
+`carcassonne`, which is using *environment variables*, by default their values
+are:
+
+    CARCASSONNE_PATTERN_PREFIX=""
+    CARCASSONNE_PATTERN_SUFFIX="_*"
+    CARCASSONNE_FILES=""
+
+These variables are only used when `carcassonne` program is called without any
+arguments. The patterns *prefix* and *suffix* helps creating the *pattern* to be
+searched and *files* is a list of file names separated by `:` (like in `$PATH`).
+Usually you just want to `export` a `CARCASSONNE_FILES` variable, like:
+
+    export CARCASSONNE_FILES="~/.ssh/config:~/.bashrc:~/.vimrc"
+
+When you execute `carcassonne` with the above *environment variable*, three
+files will be created or overwritten: `.bashrc`, `.vimrc` and `~/.ssh/config`.
+The contents of these files will be retrieved by appending the *prefix* and
+*suffix* to each file name - which would be the same as executing:
+
+    $ carcassonne ".bashrc${CARCASSONNE_PATTERN_SUFFIX}" > ~/.bashrc
+
+By just keeping this variable, you can execute `carcassonne` to update
+everything. You can enable your *castle* to be shared with others sharing a
+`.bash_environment_my-castle` with:
+
+    # home/.bash_environment_auto-ssh
+    export CARCASSONNE_FILES="$CARCASSONNE_FILES:~/.ssh/config"
+
+Repeated files in the `CARCASSONNE_FILES` variable will be ignored and executed
+only once. After cloning *carcassonne-enabled* repositories, you should execute
+`carcassonne` to update your files.
 
