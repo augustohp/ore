@@ -1,13 +1,32 @@
 # [Castle][1]: Carcassonne
 
-This is not a [castle][1], but helps you merge multiple castles together -
-*personal* and *work*, for example. It is a single posix shell-script, which
-eases its use on different machines.
+This is not a [castle][1], but helps you merge multiple [dotfiles][2] like
+*personal* and *work*, for example. It is a way to provide [dotfiles][2] that
+are usable by multiple people, with multiple other [dotfiles][2].
+
+Carcassonne can reference two different things:
+
+1. The *Carcassonne Standard* [castles][1] and [dotfiles][2] can use
+1. The program to merge *carcassonne-compatible* [dotfiles][2] together
 
 [1]: https://github.com/technicalpickles/homesick "Homesick: Take your $HOME"
+[2]: https://wiki.archlinux.org/index.php/Dotfiles
+
+## The Carcassonne Standard
+
+1. `dotfile` repositories have everything inside their `home` directory
+   symlinked to the user's `$HOME` directory
+1. SHOULD work on any OS if no restriction is provided on their `id`
+1. MUST have a `home/.carcassone/10-<id>-pre_load_hook` where `id` is the
+   unique name of the `dotfile`.
+
+## The program
+
 
     $ carcassonne --help
     Usage: carcassonne [options] <pattern>
+           carcassonne [options]
+           carcassonne <pattern>
            carcassonne
 
     Carcassone finds files following a "pattern" and outputs their content
@@ -18,7 +37,9 @@ eases its use on different machines.
     Options:
       --help, -h           Displays this help message.
       --version, -v        Displays version of the program.
+    Output options:
       --files, -f          Prints file names instead of their output.
+    Search options:
       --depth <n>, -d <n>  How deep to search directories (Default: 2).
       --sort <p>, -s <p>   Which program to pipe found files to?
                            (Default: sort).
@@ -91,7 +112,12 @@ quick tutorial:
     Or not...
 
 Note the difference between `>` (truncates the file) and `>>` (appends to the
-file) and you know how to use it.
+file) and you know how to use it:
+
+    $ carcassone ".ssh/config_*" > ~/.ssh/config
+    $ carcassone ".bashrc_*" > ~/.bashrc
+    $ carcassone ".bash_environment_*" > ~/.bash_environment
+    $ carcassone ".vimrc_*" > ~/.vimrc
 
 [r]: http://www.tldp.org/LDP/abs/html/io-redirection.html "TLDP: I/O Redirection"
 
