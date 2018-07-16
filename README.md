@@ -7,10 +7,11 @@ are usable by multiple people, with multiple other [dotfiles][2].
 Carcassonne can reference two different things:
 
 1. The *Carcassonne Standard* [castles][1] and [dotfiles][2] can use
-1. The program to merge *carcassonne-compatible* [dotfiles][2] together
+1. The program to merge [carcassonne-compatible][3] [dotfiles][2] together
 
 [1]: https://github.com/technicalpickles/homesick "Homesick: Take your $HOME"
 [2]: https://wiki.archlinux.org/index.php/Dotfiles
+[3]: https://github.com/topics/carcassone "Search compatible repositories"
 
 ## The Carcassonne Standard
 
