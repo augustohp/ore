@@ -1,84 +1,94 @@
-# [Castle][1]: Carcassonne
+# Carcassonne: Merging `dotfiles` together
 
-This is not a [castle][1], but helps you merge multiple [dotfiles][2] like
-*personal* and *work*, for example. It is a way to provide [dotfiles][2] that
-are usable by multiple people, with multiple other [dotfiles][2].
+A way to provide (a simple standard) and merge (a program) `dotfiles`.
+Multiple repositories might need to affect the same file (e.g `~/.bashrc`),
+Carcassonne allows that.
 
-Carcassonne can reference two different things:
+Carcassonne is two things:
 
-1. The *Carcassonne Standard* [castles][1] and [dotfiles][2] can use
-1. The program to merge [carcassonne-compatible][3] [dotfiles][2] together
+1. A *Standard* for [dotfiles repositories][d] to follow and play nice together
+1. A program to merge [carcassonne-compatible][m] `dotfiles` together
 
-[1]: https://github.com/technicalpickles/homesick "Homesick: Take your $HOME"
-[2]: https://wiki.archlinux.org/index.php/Dotfiles
-[3]: https://github.com/topics/carcassone "Search compatible repositories"
+[d]: https://wiki.archlinux.org/index.php/Dotfiles
+[m]: https://github.com/topics/carcassone "Search compatible repositories"
 
-## The Carcassonne Standard
+## The Standard
 
-1. `dotfile` repositories have everything inside their `home` directory
-   symlinked to the user's `$HOME` directory
-1. SHOULD work on any OS if no restriction is provided on their `id`
-1. MUST have a `home/.carcassone/10-<id>-pre_load_hook` where `id` is the
-   unique name of the `dotfile`.
+Every *carcassonne repository* CAN be a [castle][c], which means:
+
+* They contain a `home` directory
+* `home` contains files which will be symlinked to the user\'s home
+
+*Carcassonne castles* follow just one more rule:
+
+* They don\'t have files which might be used by other castles
+
+If you have a castle with `.bashrc` and want to provide it, append
+`_<id>` to the file name: `.bashrc_phpbrew`.
+
+You can search for [other Carcassonne compatible repositories on GitHub][m].
+
+[c]: https://github.com/technicalpickles/homesick "Homesick: Take your $HOME"
 
 ## The program
 
+The `carcarssonne` command line is used to merge files from smaller
+ones:
 
-    $ carcassonne --help
-    Usage: carcassonne [options] <pattern>
-           carcassonne [options]
-           carcassonne <pattern>
-           carcassonne
+    $ carcassone ".ssh/config_*" > ~/.ssh/config
 
-    Carcassone finds files following a "pattern" and outputs their content
-    after sorting their results.
-    Running the command without any argument will try to guess patterns based on
-    "environment variables", if they are not present an error is produced.
+The execution above will `find` all files in your `$HOME` that start with
+`.ssh/config_` and output its contents to `~/.ssh/config`. `carcassonne` just
+concatenate files and you are responsible for telling which file they will
+produce, a couple more examples:
 
-    Options:
-      --help, -h           Displays this help message.
-      --version, -v        Displays version of the program.
-    Output options:
-      --files, -f          Prints file names instead of their output.
-    Search options:
-      --depth <n>, -d <n>  How deep to search directories (Default: 2).
-      --sort <p>, -s <p>   Which program to pipe found files to?
-                           (Default: sort).
+    $ carcassone ".bashrc_*" > ~/.bashrc
+    $ carcassone ".bash_environment_*" > ~/.bash_environment
+    $ carcassone ".vimrc_*" > ~/.vimrc
 
-    Pattern:
-       This argument is passed to "-name" option of the "find" program. If you
-       want to output all ".ssh/config_*" files, "pattern" could be
-       ".ssh/config_*".
+The files concatenated by `carcassonne` are sorted, meaning `.vimrc_00-pathogen`
+is output before `.vimrc_99-papercolor-colorscheme`.
 
-    Environment variables:
-        CARCASSONNE_PATTERN_PREFIX
-        CARCASSONNE_PATTERN_SUFFIX
-        CARCASSONNE_FILES
+## Automating things with hooks
 
-    Send bugs and/or suggestions to https://github.com/augustohp/carcassonne/issues
+A *carcassonne repository* can help you by providing three hooks: 
 
-## Why?
+* `pre-command` and `post-command` are executed before or after `carcassonne`
+* `load` is used to automatically generate files provided by the repository
 
-Putting your `$HOME` under a versioned repository is nice, but storing my editor
-configuration, SSH configuration and public keys, my scripts all under the
-same repository (for home and work) was driving me crazy. Using [homeshick][] to
-clone my [castles][1] doesn't allow to have two files, with the same name, in
-two different castles now allowing, for example, to merge my `.ssh/config` from
-home and work at my home computer.
+**Hooks** MUST be provided inside a `.carcassonne`
+directory. If the repository is a [castle][c], then it will have a
+`home/.carcassonne` directory. A hook is a *shell* file that is executed by
+`carcassonne` and follow the convention `<when>_<_id>`:
 
-[homeshick]: https://github.com/andsens/homeshick "Dotfiles synchronizer"
+* `when`: Is either `pre`, `post` or `load`
+* `id` is usually the name of your repository
 
-I've been storing files like `.ssh/config_personal` and `.ssh/config_company`
-for some time and doing the following to create one:
+Examples of hook files are: `load_ssh_config_work`, `load_vim-pathogen`,
+`load_docker_aliases`, `pre_docker_aliases` and `post_docker_aliases`.
 
-    $ find -depth 2 -name "config_*" ~/.ssh \
-        | sort \
-        > ~/.ssh/config
+### Automatically merging files with `load` hook
 
-This is actually the second version it, the `sort` helps when order to generate
-files is important. The last version is in this script: `carcassonne`. That does
-that in a way other people can use, and maybe share it so other people can use
-it as well.
+The `load` hook is a text file with the file names provided by the repository
+after they are merged. If a repository provides `~/.vimrc` and has a
+`~/.vimrc_nice-statusbar` then the hook file content can be:
+
+    # ~/.carcassonne/load_nice-statusbar
+    # Comments are ignored
+    $HOME/.vimrc
+
+One file per line, always prefix the files with `$HOME`. Carcassonne will append a `_*` to
+every line and use it as a pattern, which is equivalent to:
+
+    $ carcassonne "$HOME/.vimrc_*" > "$HOME/.vimrc"
+
+The `load` hook is only used when you execute `carcassonne` without any
+argument (or `carcassonne --only-load`).
+
+### Pre and Post hooks
+
+This hooks must be executable, they can be a *shell script* or program that gets
+executed by `carcarssonne` if the user accepts the risks involved.
 
 ## Installation
 
@@ -95,63 +105,33 @@ can:
 
 If this fails, please [let me know][bugs].
 
+    $ carcassonne --help
+    Usage: carcassonne [options] <pattern>
+           carcassonne [options]
+           carcassonne <pattern>
+           carcassonne
+
+    Carcassone finds files following a "pattern" and outputs their content
+    after sorting their results.
+    Running the command without will trigger all hooks inside `~/.carcassonne`.
+
+    Options:
+      --help, -h           Displays this help message.
+      --version, -v        Displays version of the program.
+    Output options:
+      --files, -f          Prints file names instead of their output.
+    Hook modifiers:
+      --only-load          Only execute "load" hook and ignore others.
+    Search options:
+      --depth <n>, -d <n>  How deep to search directories (Default: 2).
+      --sort <p>, -s <p>   Which program to pipe found files to?
+                           (Default: sort).
+
+    Pattern:
+       This argument is passed to "-name" option of the "find" program. If you
+       want to output all ".ssh/config_*" files, "pattern" could be
+       ".ssh/config_*".
+
+    Send bugs and/or suggestions to https://github.com/augustohp/carcassonne/issues
+
 [bugs]: https://github.com/augustohp/carcassonne/issues "Submit a bug report"
-
-## Usage
-
-Carcassonne assumes you know how [redirection on shell][r] works, if you need a
-quick tutorial:
-
-    $ echo "Hello World" > /tmp/message
-    $ cat /tmp/message
-    Hello World
-    $ echo "Bye" > /tmp/message
-    $ cat /tmp/message
-    Bye
-    $ echo "Or not..." >> /tmp/message
-    Bye
-    Or not...
-
-Note the difference between `>` (truncates the file) and `>>` (appends to the
-file) and you know how to use it:
-
-    $ carcassone ".ssh/config_*" > ~/.ssh/config
-    $ carcassone ".bashrc_*" > ~/.bashrc
-    $ carcassone ".bash_environment_*" > ~/.bash_environment
-    $ carcassone ".vimrc_*" > ~/.vimrc
-
-[r]: http://www.tldp.org/LDP/abs/html/io-redirection.html "TLDP: I/O Redirection"
-
-There is a shortcut for when you are creating multiple files using
-`carcassonne`, which is using *environment variables*, by default their values
-are:
-
-    CARCASSONNE_PATTERN_PREFIX=""
-    CARCASSONNE_PATTERN_SUFFIX="_*"
-    CARCASSONNE_FILES=""
-
-These variables are only used when `carcassonne` program is called without any
-arguments. The patterns *prefix* and *suffix* helps creating the *pattern* to be
-searched and *files* is a list of file names separated by `:` (like in `$PATH`).
-Usually you just want to `export` a `CARCASSONNE_FILES` variable, like:
-
-    export CARCASSONNE_FILES="~/.ssh/config:~/.bashrc:~/.vimrc"
-
-When you execute `carcassonne` with the above *environment variable*, three
-files will be created or overwritten: `.bashrc`, `.vimrc` and `~/.ssh/config`.
-The contents of these files will be retrieved by appending the *prefix* and
-*suffix* to each file name - which would be the same as executing:
-
-    $ carcassonne ".bashrc${CARCASSONNE_PATTERN_SUFFIX}" > ~/.bashrc
-
-By just keeping this variable, you can execute `carcassonne` to update
-everything. You can enable your *castle* to be shared with others sharing a
-`.bash_environment_my-castle` with:
-
-    # home/.bash_environment_auto-ssh
-    export CARCASSONNE_FILES="$CARCASSONNE_FILES:~/.ssh/config"
-
-Repeated files in the `CARCASSONNE_FILES` variable will be ignored and executed
-only once. After cloning *carcassonne-enabled* repositories, you should execute
-`carcassonne` to update your files.
-
