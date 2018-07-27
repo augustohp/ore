@@ -75,15 +75,12 @@ after they are merged. If a repository provides `~/.vimrc` and has a
 
     # ~/.carcassonne/load_nice-statusbar
     # Comments are ignored
-    $HOME/.vimrc
-
-One file per line, always prefix the files with `$HOME`. Carcassonne will append a `_*` to
-every line and use it as a pattern, which is equivalent to:
-
-    $ carcassonne "$HOME/.vimrc_*" > "$HOME/.vimrc"
+    carcassonne "$HOME/.vimrc_* >> $HOME/.vimrc
 
 The `load` hook is only used when you execute `carcassonne` without any
-argument (or `carcassonne --only-load`).
+argument (or `carcassonne --only-load`). All `load` hooks differ from `pre` and
+`post` hooks as their content is first read, merged together with all other
+`load` hook-scripts available so they can be deduplicated.
 
 ### Pre and Post hooks
 
