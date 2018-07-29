@@ -1,0 +1,83 @@
+#!/usr/bin/env sh
+#vim: ft=sh:
+
+NAME=$(basename $0)
+VERSION="1.0.0"
+
+command_v () { command_version; }
+command_version ()
+{
+	echo "${NAME} ${VERSION}"
+}
+
+command_h ()
+{
+	cat <<-EOT
+	Usage: ${NAME} [-v | --version] [-h | --help]
+	       ${NAME} [-d <n=2> | --depth <n=2>] [-s <p> | --sort <p>] <pattern>
+	       ${NAME} [-d | --files] <pattern>
+	       ${NAME} [--hook <load|pre|post>]
+	EOT
+}
+
+command_help ()
+{
+	cat <<-EOT
+	Usage: ${NAME} [options] <pattern>
+	       ${NAME} [options]
+	       ${NAME} <pattern>
+	       ${NAME}
+	
+	Carcassonne finds files following a "pattern" and outputs their content
+	after sorting their results. This is useful to generate a file from multiple
+	files following a name convention.
+	Running the command without any arguments will trigger all hooks inside
+	"~/.carcassonne".
+	
+	Options:
+	    --help, -h           Displays this help message.
+	    --version, -v        Displays version of the program.
+	Output options:
+	    --files, -f          Prints file names instead of their output.
+	Hook modifiers:
+	    --hook <h>           Only execute a hook and ignore others, possible
+	                         hook names are: "load", "pre" and "post"
+	Search options:
+	    --depth <n>, -d <n>  How deep to search directories (Default: 2).
+	    --sort <p>, -s <p>   Which program to pipe found files to?
+	                         (Default: sort).
+	
+	Pattern:
+	    This argument is passed to "-name" option of the "find" program. If you
+	    want to output all ".ssh/config_*" files, "pattern" could be
+	    ".ssh/config_*".
+	
+	Send bugs and/or suggestions to https://github.com/augustohp/carcassonne/issues
+	EOT
+}
+
+while :;
+do
+	case "${1}"
+	in
+		-v)
+			command_v
+			exit 0
+			;;
+		--version)
+			command_version
+			exit 0
+			;;
+		-h)
+			command_h
+			exit 0
+			;;
+		--help)
+			command_help
+			exit 0
+			;;
+		*)
+			echo "Error: Unknown option \"${1}\", try \"${NAME} --help\"."
+			exit 2
+	esac
+done

@@ -1,0 +1,37 @@
+# Ripped from https://github.com/alganet/workshop/blob/master/.travis.yml
+sudo: required
+language: bash
+before_install:
+    # For linux environments, fetch dependencies
+    - ${PPA:+sudo add-apt-repository ppa:${PPA} -y}
+    - ${APTGET:+sudo apt-get update}
+    - ${APTGET:+sudo apt-get install -y build-essential curl ${APTGET}}
+    # For OSX environments, fetch dependencies
+    - ${BREW:+brew update}
+    - ${BREW:+brew install ${BREW}}
+
+script:
+    make test
+
+matrix:
+    include:
+        - env: TEST_SHELL=bash APTGET=
+          os: linux
+        - env: TEST_SHELL=dash APTGET=
+          os: linux
+        - env: TEST_SHELL=posh APTGET=posh
+          os: linux
+        - env: TEST_SHELL=zsh APTGET=zsh
+          os: linux
+        - env: TEST_SHELL=ksh APTGET=ksh
+          os: linux
+        - env: TEST_SHELL="busybox sh" APTGET=busybox
+          os: linux
+        - env: TEST_SHELL=bash BREW=
+          os: osx
+        - env: TEST_SHELL=bash BREW=bash
+          os: osx
+        - env: TEST_SHELL=zsh BREW=zsh
+          os:  osx
+        - env: TEST_SHELL=ksh BREW=ksh
+          os:  osx

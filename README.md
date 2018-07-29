@@ -80,7 +80,7 @@ after they are merged. If a repository provides `~/.vimrc` and has a
 The `load` hook is only used when you execute `carcassonne` without any
 argument (or `carcassonne --only-load`). All `load` hooks differ from `pre` and
 `post` hooks as their content is first read, merged together with all other
-`load` hook-scripts available so they can be deduplicated.
+`load` hook-scripts available so they can be de-duplicated.
 
 ### Pre and Post hooks
 
@@ -101,34 +101,5 @@ can:
     Carcassonne 1.0.0
 
 If this fails, please [let me know][bugs].
-
-    $ carcassonne --help
-    Usage: carcassonne [options] <pattern>
-           carcassonne [options]
-           carcassonne <pattern>
-           carcassonne
-
-    Carcassone finds files following a "pattern" and outputs their content
-    after sorting their results.
-    Running the command without will trigger all hooks inside `~/.carcassonne`.
-
-    Options:
-      --help, -h           Displays this help message.
-      --version, -v        Displays version of the program.
-    Output options:
-      --files, -f          Prints file names instead of their output.
-    Hook modifiers:
-      --only-load          Only execute "load" hook and ignore others.
-    Search options:
-      --depth <n>, -d <n>  How deep to search directories (Default: 2).
-      --sort <p>, -s <p>   Which program to pipe found files to?
-                           (Default: sort).
-
-    Pattern:
-       This argument is passed to "-name" option of the "find" program. If you
-       want to output all ".ssh/config_*" files, "pattern" could be
-       ".ssh/config_*".
-
-    Send bugs and/or suggestions to https://github.com/augustohp/carcassonne/issues
 
 [bugs]: https://github.com/augustohp/carcassonne/issues "Submit a bug report"
