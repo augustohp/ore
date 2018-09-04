@@ -1,4 +1,4 @@
-# Carcassonne Tests Introduction
+# Ore Tests Introduction
 
 All [code blocks][1] in `*.md` files are treated as tests by [clitest][2] and
 other text is ignored. Hopefully what is written between the tests is useful in
@@ -19,12 +19,12 @@ how to execute the tests manually.
 
 ## The binary used for tests
 
-As a *developer* running the test suite might already have `carcassonne`
+As a *developer* running the test suite might already have `ore`
 available on his `$PATH`, the `Makefile` symlinks the development file to
-`/tmp/carcassonne-dev` - which is used throughout test files.
+`/tmp/ore-dev` - which is used throughout test files.
 
-    $ which carcassonne-dev
-    /tmp/carcassonne-dev
+    $ which ore-dev
+    /tmp/ore-dev
 
 ## The tests
 
@@ -36,39 +36,39 @@ every command line program should follow.
 Displaying the version number of a program is a nice behaviour to provide, many
 programs test the existence of another through that interface.
 
-    $ carcassonne-dev -v
-    carcassonne-dev 1.0.0
-    $ carcassonne-dev --version
-    carcassonne-dev 1.0.0
+    $ ore-dev -v
+    ore-dev 1.0.0
+    $ ore-dev --version
+    ore-dev 1.0.0
 
 The name of the program is fetch from `$0`, so if the program is named
-`carcassonne-dev` that is what will be displayed.
+`ore-dev` that is what will be displayed.
 
 ### Getting help
 
 A help must be displayed as well, like `git` there are two versions: a *short*
 (`-h`) and a *long* (`--help`) one.
 
-    $ carcassonne-dev -h
-    Usage: carcassonne-dev [-v | --version] [-h | --help]
-           carcassonne-dev [-d <n=2> | --depth <n=2>] [-s <p> | --sort <p>] <pattern>
-           carcassonne-dev [-d | --files] <pattern>
-           carcassonne-dev [--hook <load|pre|post>]
+    $ ore-dev -h
+    Usage: ore-dev [-v | --version] [-h | --help]
+           ore-dev [-d <n=2> | --depth <n=2>] [-s <p> | --sort <p>] <pattern>
+           ore-dev [-d | --files] <pattern>
+           ore-dev [--hook <load|pre|post>]
 
 The *short help* provides examples of usage where each line is a command one
 might issue with the program.
 
-    $ carcassonne-dev --help
-    Usage: carcassonne-dev [options] <pattern>
-           carcassonne-dev [options]
-           carcassonne-dev <pattern>
-           carcassonne-dev
+    $ ore-dev --help
+    Usage: ore-dev [options] <pattern>
+           ore-dev [options]
+           ore-dev <pattern>
+           ore-dev
     
-    Carcassonne finds files following a "pattern" and outputs their content
+    Ore finds files following a "pattern" and outputs their content
     after sorting their results. This is useful to generate a file from multiple
     files following a name convention.
     Running the command without any arguments will trigger all hooks inside
-    "~/.carcassonne".
+    "~/.ore".
     
     Options:
         --help, -h           Displays this help message.
@@ -88,7 +88,7 @@ might issue with the program.
         want to output all ".ssh/config_*" files, "pattern" could be
         ".ssh/config_*".
     
-    Send bugs and/or suggestions to https://github.com/augustohp/carcassonne/issues
+    Send bugs and/or suggestions to https://github.com/augustohp/ore/issues
 
 The *full help* should provide everything a user need to know as no `man` pages
 are provided with the script.
@@ -97,24 +97,24 @@ are provided with the script.
 
 When an invalid option is provided, an error message should be displayed:
 
-    $ carcassonne-dev -x
-    Error: Unknown option "-x", try "carcassonne-dev --help".
+    $ ore-dev -x
+    Error: Unknown option "-x", try "ore-dev --help".
 
 These *invalid calls* should also exit with a proper *exit code*:
 
-    $ carcassonne-dev -x #=> --exit 2
+    $ ore-dev -x #=> --exit 2
 
 If a valid command such as `help` or `version` is passed and an invalid
 parameter is given, give preference for the valid command:
 
-    $ carcassonne-dev -h -x #=> --exit 0
-    $ carcassonne-dev -v -x #=> --exit 0
+    $ ore-dev -h -x #=> --exit 0
+    $ ore-dev -v -x #=> --exit 0
 
 ### Some improvements to the API
 
 Currently, options are parsed one at a time. We cannot specify all options with
 a single `-`:
 
-    $ carcassonne-dev -vx #=> --exit 2
+    $ ore-dev -vx #=> --exit 2
 
 The above should work by providing `-v` behavior as previous tests state.
