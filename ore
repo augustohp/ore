@@ -28,11 +28,11 @@ command_help ()
 	       ${NAME} <pattern>
 	       ${NAME}
 	
-	Carcassonne finds files following a "pattern" and outputs their content
+	Ore finds files following a "pattern" and outputs their content
 	after sorting their results. This is useful to generate a file from multiple
 	files following a name convention.
 	Running the command without any arguments will trigger all hooks inside
-	"~/.carcassonne".
+	"~/.ore".
 	
 	Options:
 	    --help, -h           Displays this help message.
@@ -52,7 +52,7 @@ command_help ()
 	    want to output all ".ssh/config_*" files, "pattern" could be
 	    ".ssh/config_*".
 	
-	Send bugs and/or suggestions to https://github.com/augustohp/carcassonne/issues
+	Send bugs and/or suggestions to https://github.com/augustohp/ore/issues
 	EOT
 }
 
